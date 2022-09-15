@@ -19,11 +19,11 @@ struct Search: ParsableCommand {
 	var lineNumbers = false
 	
 	func validate() throws {
-		if (try URL(fileURLWithPath: file).resourceValues(forKeys: [.isDirectoryKey])).isDirectory! {
-			throw ValidationError("\(file): Is a directory.")
-		}
 		if !FileManager().fileExists(atPath: file) {
 			throw ValidationError("\(file): File cannot be found.")
+		}
+		if (try URL(fileURLWithPath: file).resourceValues(forKeys: [.isDirectoryKey])).isDirectory! {
+			throw ValidationError("\(file): Is a directory.")
 		}
 		if !FileManager().isReadableFile(atPath: file) {
 			throw ValidationError("\(file): Cannot read file.")
@@ -49,21 +49,26 @@ struct Search: ParsableCommand {
 			var coloredLine = printableFileLines[index]
 			
 			if line.contains(text) {
-				if ignoreCase {
-					coloredLine = coloredLine
-						.replacingOccurrences(of: text, with: "\u{001B}[1;31m\(text)\u{001B}[0;0m")
-						.replacingOccurrences(of: text.uppercased(), with: "\u{001B}[1;31m\(text.uppercased())\u{001B}[0;0m")
-						.replacingOccurrences(of: text.lowercased(), with: "\u{001B}[1;31m\(text.lowercased())\u{001B}[0;0m")
-						.replacingOccurrences(of: text.capitalized, with: "\u{001B}[1;31m\(text.capitalized)\u{001B}[0;0m")
-					
-				} else {
-					coloredLine = coloredLine
-						.replacingOccurrences(of: text, with: "\u{001B}[1;31m\(text)\u{001B}[0;0m")
-					
-				}
+				colorLine(&coloredLine)
 				
 				print(lineNumbers ? String((index + 1)) + ":" + coloredLine : coloredLine)
 			}
 		}
 	}
+	
+	private func colorLine(_ line: inout String)  {
+		if ignoreCase {
+			line = line
+				.replacingOccurrences(of: text, with: "\u{001B}[1;31m\(text)\u{001B}[0;0m")
+				.replacingOccurrences(of: text.uppercased(), with: "\u{001B}[1;31m\(text.uppercased())\u{001B}[0;0m")
+				.replacingOccurrences(of: text.lowercased(), with: "\u{001B}[1;31m\(text.lowercased())\u{001B}[0;0m")
+				.replacingOccurrences(of: text.capitalized, with: "\u{001B}[1;31m\(text.capitalized)\u{001B}[0;0m")
+			
+		} else {
+			line = line
+				.replacingOccurrences(of: text, with: "\u{001B}[1;31m\(text)\u{001B}[0;0m")
+			
+		}
+	}
+	
 }
